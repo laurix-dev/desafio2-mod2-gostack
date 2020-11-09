@@ -13,9 +13,9 @@ const transactionsRouter = Router();
 transactionsRouter.get('/', async (request, response) => {
   const getTransaction = new GetTransactionService();
 
-  const resultBalance = getTransaction.execute();
+  const resultTransactions = await getTransaction.execute();
 
-  return response.json(resultBalance);
+  return response.json(resultTransactions);
 });
 
 transactionsRouter.post('/', async (request, response) => {

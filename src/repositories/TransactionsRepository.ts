@@ -8,11 +8,10 @@ interface Balance {
   total: number;
 }
 
-const transactionRepository = getRepository(Transaction);
-
 @EntityRepository(Transaction)
 class TransactionsRepository extends Repository<Transaction> {
   public async getBalance(): Promise<Balance> {
+    const transactionRepository = getRepository(Transaction);
     // Pega os transactions do banco para fazer o balance
     const transactions = await transactionRepository.find();
 

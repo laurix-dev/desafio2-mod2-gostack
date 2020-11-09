@@ -1,7 +1,9 @@
+import { getCustomRepository, getRepository } from 'typeorm';
 import AppError from '../errors/AppError';
 import TransactionsRepository from '../repositories/TransactionsRepository';
 
 import Transaction from '../models/Transaction';
+import Category from '../models/Category';
 
 interface RequestDTO {
   title: string;
@@ -17,7 +19,11 @@ class CreateTransactionService {
     type,
     category,
   }: RequestDTO): Promise<Transaction> {
-    const balance = this.transactionsRepository.getBalance();
+    // pegando os repositorios que vamos usar e em seguida calculando o balance
+    const transactionsRepository = getCustomRepository(TransactionsRepository);
+    const categoriesRepository = getRepository(Category);
+
+    const balance = await transactionsRepository.getBalance();
 
     // aqui calculamos balanco total menos o valor da transacao que o usario esta tentando fazer
     const total = balance.total - value;
@@ -30,15 +36,38 @@ class CreateTransactionService {
       );
     }
     // falta checar se existe a categoria no banco, caso sim usar o mesmo id pra essa transaction
+    const searchForCategoriesById = await categoriesRepository.findOne({
+      title: category,
+    });
 
-    const transaction = this.transactionsRepository.create({
+    // Se entrar no if eh pq nao existe essa categoria e precisamos cria-la
+    if (!searchForCategoriesById) {
+      const newCategory = categoriesRepository.create({
+        title: category,
+      });
+      await categoriesRepository.save(newCategory);
+
+      const newTransaction = transactionsRepository.create({
+        title,
+        value,
+        type,
+        category_id: newCategory.id,
+      });
+      await transactionsRepository.save(newTransaction);
+
+      return newTransaction;
+    }
+
+    // Com a categoria encontrada
+    const newTransaction = transactionsRepository.create({
       title,
       value,
       type,
-      category,
+      category_id: searchForCategoriesById.id,
     });
+    await transactionsRepository.save(newTransaction);
 
-    return transaction;
+    return newTransaction;
   }
 }
 

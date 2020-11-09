@@ -1,4 +1,3 @@
-/* eslint-disable no-await-in-loop */
 import { getCustomRepository, getRepository } from 'typeorm';
 import TransactionsRepository from '../repositories/TransactionsRepository';
 import Transaction from '../models/Transaction';
@@ -25,14 +24,20 @@ export default class GetTransactionService {
 
     // provavelmente esse n eh o jeito mais otimo de se fazer mas n consegui pensar em
     // outro modo
+    const category = await categoriesRepository.find();
+
+    if (!category) {
+      throw new AppError('No category was found!', 500);
+    }
+
+    // nesse for aninhado procuramos pelo category_id dentro da tabela category pra ver se ela existe
+    // e se existir ela coloca no campo category
     for (let i = 0; i < transactions.length; i += 1) {
-      const category = await categoriesRepository.findOne(
-        transactions[i].category_id,
-      );
-      if (!category) {
-        throw new AppError('No category was found!', 400);
+      for (let j = 0; j < category.length; j += 1) {
+        if (transactions[i].category_id === category[j].id) {
+          transactions[i].category = category[j];
+        }
       }
-      transactions[i].category = category;
     }
 
     const balanceResult: BalanceResult = {

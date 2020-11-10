@@ -26,18 +26,16 @@ class CreateTransactionService {
     const { total } = await transactionsRepository.getBalance();
 
     if (type !== 'outcome' && type !== 'income') {
-      throw new AppError('Invalid value for type!', 500);
+      throw new AppError('Invalid value for type!');
     }
     if (value < 0) {
-      throw new AppError('Invalid value for value!', 500);
+      throw new AppError('Invalid value for value!');
     }
 
     // checando se a transação for de outcome e a soma do balanco dele for menor que zero então não podemos permitir a transação ser concluida
-    console.log(`total ${total} < value ${value} = ${total < value}`);
     if (type === 'outcome' && total < value) {
       throw new AppError(
         'Eiita essa transação ae ta deixando sua conta negativa! N permitiremos isso',
-        500,
       );
     }
     // falta checar se existe a categoria no banco, caso sim usar o mesmo id pra essa transaction

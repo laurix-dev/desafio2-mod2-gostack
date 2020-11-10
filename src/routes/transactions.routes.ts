@@ -1,16 +1,15 @@
 import { Router } from 'express';
+import multer from 'multer';
 import { getCustomRepository } from 'typeorm';
-import TransactionsRepository from '../repositories/TransactionsRepository';
-import CreateTransactionService from '../services/CreateTransactionService';
 
-// import CreateTransactionService from '../services/CreateTransactionService';
+import uploadConfig from '../config/upload';
+import CreateTransactionService from '../services/CreateTransactionService';
 import GetTransactionService from '../services/GetTransactionService';
-// import TransactionsRepository from '../repositories/TransactionsRepository';
-// import CreateTransactionService from '../services/CreateTransactionService';
-// import DeleteTransactionService from '../services/DeleteTransactionService';
-// import ImportTransactionsService from '../services/ImportTransactionsService';
+import TransactionsRepository from '../repositories/TransactionsRepository';
+import ImportTransactionsService from '../services/ImportTransactionsService';
 
 const transactionsRouter = Router();
+const upload = multer(uploadConfig);
 
 transactionsRouter.get('/', async (request, response) => {
   const getTransaction = new GetTransactionService();
@@ -43,8 +42,18 @@ transactionsRouter.delete('/:id', async (request, response) => {
   return response.json();
 });
 
-// transactionsRouter.post('/import', async (request, response) => {
-//   // TODO
-// });
+transactionsRouter.post(
+  '/import',
+  upload.single('file'),
+  async (request, response) => {
+    const planilhaFile = request.file;
+
+    const importTransaction = new ImportTransactionsService();
+
+    const transactions = await importTransaction.execute(planilhaFile);
+
+    return response.status(200).json(transactions);
+  },
+);
 
 export default transactionsRouter;

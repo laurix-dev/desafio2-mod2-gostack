@@ -1,4 +1,4 @@
-import { EntityRepository, Repository, getRepository } from 'typeorm';
+import { EntityRepository, Repository } from 'typeorm';
 
 import Transaction from '../models/Transaction';
 
@@ -11,9 +11,8 @@ interface Balance {
 @EntityRepository(Transaction)
 class TransactionsRepository extends Repository<Transaction> {
   public async getBalance(): Promise<Balance> {
-    const transactionRepository = getRepository(Transaction);
     // Pega os transactions do banco para fazer o balance
-    const transactions = await transactionRepository.find();
+    const transactions = await this.find();
 
     // Instancia uma variavel do tipo balance
     const balance: Balance = {
